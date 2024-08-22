@@ -1,5 +1,7 @@
 package com.openclassrooms.mddapi.configuration;
 
+import java.util.Arrays;
+
 import javax.crypto.spec.SecretKeySpec;
 
 import org.modelmapper.ModelMapper;
@@ -20,6 +22,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.openclassrooms.mddapi.services.UserDetailsService;
@@ -39,6 +42,13 @@ public class SpringSecurityConfig
     {
         return http
             .securityMatcher("/**")
+            .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(Arrays.asList("*"));
+                configuration.setAllowedMethods(Arrays.asList("*"));
+                configuration.setAllowedHeaders(Arrays.asList("*"));
+                return configuration;
+            }))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
