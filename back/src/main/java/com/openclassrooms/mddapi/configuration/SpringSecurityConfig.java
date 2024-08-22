@@ -22,9 +22,11 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.openclassrooms.mddapi.filters.AuthTokenFilter;
 import com.openclassrooms.mddapi.services.UserDetailsService;
 
 @Configuration
@@ -40,7 +42,7 @@ public class SpringSecurityConfig
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
     {
-        return http
+        http
             .securityMatcher("/**")
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration configuration = new CorsConfiguration();
@@ -59,7 +61,9 @@ public class SpringSecurityConfig
             })
             .httpBasic(Customizer.withDefaults())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-            .build();
+            .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+            
+        return http.build();
     }
 
     @Bean
@@ -69,6 +73,11 @@ public class SpringSecurityConfig
         builder.userDetailsService(userDetailsService)
             .passwordEncoder(passwordEncoder);
         return builder.build();
+    }
+
+    @Bean
+    public AuthTokenFilter authenticationJwtTokenFilter() {
+      return new AuthTokenFilter();
     }
 
     @Bean

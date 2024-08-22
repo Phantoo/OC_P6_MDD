@@ -10,13 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.mddapi.dto.RegisterRequest;
 import com.openclassrooms.mddapi.models.User;
+import com.openclassrooms.mddapi.models.UserDetails;
+import com.openclassrooms.mddapi.models.dto.LoginRequest;
+import com.openclassrooms.mddapi.models.dto.RegisterRequest;
 import com.openclassrooms.mddapi.repositories.UserRepository;
 
 @Service
@@ -34,14 +35,14 @@ public class UserService
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public Authentication login(String email, String password) throws AuthenticationException
+    public Authentication login(LoginRequest loginRequest) throws AuthenticationException
     {
-        Boolean loginValid = isUserValid(email, password);
+        Boolean loginValid = isUserValid(loginRequest.getEmail(), loginRequest.getPassword());
         if (loginValid == false)
             throw new AuthenticationException();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         return auth;
     }
@@ -69,6 +70,10 @@ public class UserService
         // Save
         User savedUser = userRepository.save(user);
         return savedUser;
+    }
+
+    public User findById(Integer id) {
+        return this.userRepository.findById(id).orElse(null);
     }
 
     // Returns true only if the username/password matches an existing account
