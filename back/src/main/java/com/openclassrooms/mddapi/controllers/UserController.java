@@ -1,5 +1,6 @@
 package com.openclassrooms.mddapi.controllers;
 
+import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,9 +9,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.openclassrooms.mddapi.models.Subject;
 import com.openclassrooms.mddapi.models.User;
 import com.openclassrooms.mddapi.models.dto.UserDto;
+import com.openclassrooms.mddapi.models.dto.UserUpdateRequest;
+import com.openclassrooms.mddapi.services.SubjectService;
 import com.openclassrooms.mddapi.services.UserService;
+
+import jakarta.transaction.Transactional;
+
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("users")
@@ -20,6 +30,9 @@ public class UserController
     private UserService userService;
 
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
     private ModelMapper mapper;
 
     @GetMapping("/{id}")
@@ -27,14 +40,86 @@ public class UserController
     {
         try {
             User user = this.userService.findById(Integer.valueOf(id));
-
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            return ResponseEntity.ok().body(mapper.map(user, UserDto.class));
+            //List<Subject> subjects = user.getSubjects();
+
+            UserDto dto = mapper.map(user, UserDto.class);
+            return ResponseEntity.ok().body(dto);
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDto> update(@PathVariable String id, @RequestBody UserUpdateRequest updateRequest) 
+    {
+        try {
+            User user = this.userService.findById(Integer.valueOf(id));
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            this.userService.update(user, updateRequest);
+
+            UserDto dto = mapper.map(user, UserDto.class);
+            return ResponseEntity.ok().body(dto);
+        } 
+        catch (NumberFormatException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("{userId}/subscribe/{subjectId}")
+    @Transactional
+    public ResponseEntity<String> subscribe(@PathVariable String userId, @PathVariable String subjectId) 
+    {
+        try {
+            User user = this.userService.findById(Integer.valueOf(userId));
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Subject subject = this.subjectService.findById(Integer.valueOf(subjectId));
+            if (subject == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            user = this.userService.subscribe(user, subject);
+            return ResponseEntity.ok().body("Successfully subscribed user");
+        } 
+        catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("{userId}/unsubscribe/{subjectId}")
+    @Transactional
+    public ResponseEntity<String> unsubscribe(@PathVariable String userId, @PathVariable String subjectId) 
+    {
+        try {
+            User user = this.userService.findById(Integer.valueOf(userId));
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Subject subject = this.subjectService.findById(Integer.valueOf(subjectId));
+            if (subject == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            user = this.userService.unsubscribe(user, subject);
+            return ResponseEntity.ok().body("Successfully unsubscribed user");
+        } 
+        catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
