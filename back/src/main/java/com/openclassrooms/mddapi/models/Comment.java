@@ -9,7 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +27,13 @@ public class Comment
     @Column(nullable = false)
     private String content;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
     private User author;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "article_id", referencedColumnName = "id", nullable = false)
+    private Article article;
 
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;

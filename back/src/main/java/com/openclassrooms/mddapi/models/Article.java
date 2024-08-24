@@ -45,7 +45,7 @@ public class Article
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(name = "comments", joinColumns = @JoinColumn(name = "article_id"), inverseJoinColumns = @JoinColumn(name = "id"))
     private List<Comment> comments;
 }
