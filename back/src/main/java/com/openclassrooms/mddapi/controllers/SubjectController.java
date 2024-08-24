@@ -13,7 +13,7 @@ import com.openclassrooms.mddapi.models.Subject;
 import com.openclassrooms.mddapi.models.dto.SubjectDto;
 import com.openclassrooms.mddapi.services.SubjectService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
@@ -27,7 +27,7 @@ public class SubjectController
     private ModelMapper mapper;
 
     @GetMapping("/{id}")
-    public ResponseEntity<SubjectDto> findById(@RequestParam String id) 
+    public ResponseEntity<SubjectDto> findById(@PathVariable String id) 
     {
         try {
             Subject subject = this.subjectService.findById(Integer.valueOf(id));
