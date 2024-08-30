@@ -25,7 +25,7 @@ public class CommentController
     @Autowired
     private ModelMapper mapper;
 
-        @GetMapping("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<CommentDto> findById(@PathVariable String id) 
     {
         try {
