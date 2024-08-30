@@ -15,30 +15,29 @@ import { SessionService } from './auth/services/session.service';
 export class AppComponent {
     title = 'MDDApp';
 
-    email: string = '';
-    password: string = '';
-    requestResponse: string = 'undefined';
+    // email: string = '';
+    // password: string = '';
+    // requestResponse: string = 'undefined';
 
-    constructor(private authService: AuthService, private sessionService: SessionService) {
-    }
+    constructor(/*private authService: AuthService, private sessionService: SessionService*/) {}
 
-    onSubmit(): void {
-        let request: LoginRequest = {
-            email: this.email,
-            password: this.password
-        }
-        this.authService.login(request).subscribe(
-            response => {
-                this.requestResponse = JSON.stringify(response, null, '\t');
-                // Enables the 'Bearer' header for requests
-                this.sessionService.logIn(response.token);
-        }, 
-            error => {
-                if (this.sessionService.isLogged) {
-                    // Disables the 'Bearer' header for requests
-                    this.sessionService.logOut();
-                    this.requestResponse = 'undefined';
-                }
-        });
-    }
+    // onSubmit(): void {
+    //     let request: LoginRequest = {
+    //         email: this.email,
+    //         password: this.password
+    //     }
+    //     this.authService.login(request).subscribe(
+    //         response => {
+    //             this.requestResponse = JSON.stringify(response, null, '\t');
+    //             // Enables the 'Bearer' header for requests
+    //             this.sessionService.logIn(response);
+    //     }, 
+    //         error => {
+    //             if (this.sessionService.isLogged) {
+    //                 // Disables the 'Bearer' header for requests
+    //                 this.sessionService.logOut();
+    //                 this.requestResponse = 'undefined';
+    //             }
+    //     });
+    // }
 }
