@@ -1,3 +1,5 @@
+import { Subject } from "../../interfaces/subject.interface";
+
 export interface User
 {
     id: number;
@@ -5,4 +7,5 @@ export interface User
     email: string;
     createdAt: Date;
     updatedAt: Date;
+    subjects: Subject[];
 }

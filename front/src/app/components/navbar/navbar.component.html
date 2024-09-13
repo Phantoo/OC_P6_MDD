@@ -1,0 +1,23 @@
+@if (this.sessionService.isLogged) 
+{
+    <p-menubar #menubar id="navbar" [model]="menuItems" styleClass="navbar">
+        <ng-template pTemplate="start">
+            <img src="../../../assets/logo.svg" id="navBarLogo" routerLink="/feed">
+        </ng-template>
+
+        <ng-template pTemplate="end">
+                @if (this.platformService.isTablet == false) 
+                {
+                    <div class="flex align-items-center gap-2">
+                        <p-avatar 
+                            id="avatar"
+                            label={{this.sessionService.sessionInfo?.user?.username?.charAt(0)}}
+                            styleClass="mr-2 ml-2"
+                            shape="circle"
+                            (click)="menu.toggle($event)"/>
+                    </div>
+                    <p-menu #menu [model]="avatarMenuItems" [popup]="true"/>
+                }
+            </ng-template>
+    </p-menubar>
+}

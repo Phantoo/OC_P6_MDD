@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SessionInformation } from '../interfaces/session-information.interface';
+import { UserService } from '../../services/user.service';
+import { User } from '../interfaces/user.interface';
 
 @Injectable({
     providedIn: 'root'
@@ -11,6 +13,8 @@ export class SessionService
     public sessionInfo: SessionInformation | undefined = undefined;
 
     private isLoggedSubject = new BehaviorSubject<boolean>(this.isLogged);
+
+    constructor(private userService: UserService) {}
 
     // Used to listen to the logged state
     public $isLogged(): Observable<boolean> {
@@ -23,11 +27,11 @@ export class SessionService
             response.user === null)
             return;
         
-        this.sessionInfo = {
-            user: response.user,
-            token: response.token
-        };
+        this.sessionInfo = response;
         this.isLogged = true;
+
+        localStorage.setItem('SESSION', JSON.stringify(response));
+
         this.propagate();
     }
 
@@ -35,7 +39,18 @@ export class SessionService
     {
         this.sessionInfo = undefined;
         this.isLogged = false;
+
+        localStorage.removeItem('SESSION');
+
         this.propagate();
+    }
+
+    public refreshUserInfo(user: User)
+    {
+        if (this.isLogged == false)
+            return;
+        this.sessionInfo!.user = user;
+        localStorage.setItem('SESSION', JSON.stringify(this.sessionInfo));
     }
 
     // Used to send new state to listeners

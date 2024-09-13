@@ -32,6 +32,7 @@ public class UserDetailsService implements org.springframework.security.core.use
             .password(user.getPassword())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
+            .subjects(user.getSubjects())
             .build();
     }
 }

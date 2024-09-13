@@ -49,9 +49,9 @@ public class JWTService
             this.decoder.decode(token);
             return true;
         } catch (JwtException e) {
-            System.err.println(String.format("Invalid JWT token: {1}", e.getMessage()));
+            System.err.println(String.format("Invalid JWT token: %s", e.getMessage()));
         } catch (IllegalArgumentException e) {
-            System.err.println(String.format("JWT claims string is empty: {1}", e.getMessage()));
+            System.err.println(String.format("JWT claims string is empty: %s", e.getMessage()));
         }
 
         return false;

@@ -5,10 +5,13 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.mddapi.models.Article;
@@ -54,11 +57,22 @@ public class ArticleController
         }
     }
     
+    // @GetMapping
+    // public ResponseEntity<List<ArticleDto>> findAll() 
+    // {
+    //     List<Article> articles = this.articleService.findAll();
+    //     List<ArticleDto> dtos = mapper.map(articles, new TypeToken<List<ArticleDto>>() {}.getType());
+    //     return ResponseEntity.ok().body(dtos);
+    // }
+
     @GetMapping
-    public ResponseEntity<List<ArticleDto>> findAll() 
+    public ResponseEntity<Page<ArticleDto>> findAll(@RequestParam List<Integer> subjects, Pageable pageable) 
     {
-        List<Article> articles = this.articleService.findAll();
-        List<ArticleDto> dtos = mapper.map(articles, new TypeToken<List<ArticleDto>>() {}.getType());
+        Page<Article> articles = this.articleService.findAll(subjects, pageable);
+        Page<ArticleDto> dtos = articles.map(article -> {
+            return mapper.map(article, ArticleDto.class);
+        });
+        // Page<ArticleDto> dtos = mapper.map(articles, new TypeToken<Page<ArticleDto>>() {}.getType());
         return ResponseEntity.ok().body(dtos);
     }
 

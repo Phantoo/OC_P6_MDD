@@ -1,2 +1,9 @@
-<img class="logo"/>
-<p>landing works!</p>
+<div class="flex-column h-screen align-content-center overflow-hidden">
+    <div class="flex justify-content-center h-12rem md:h-22rem">
+        <img src="../../../assets/logo.svg" class="w-12 md:w-6">
+    </div>
+    <div class="flex flex-wrap p-fluid flex-column md:flex-row justify-content-center align-content-center align-items-center gap-4 md:gap-8">
+        <p-button label="Se connecter" icon="pi pi-sign-in" (click)="onLoginButtonClicked()" class="w-12rem"/>
+        <p-button label="S'inscrire" icon="pi pi-user-plus" (click)="onRegisterButtonClicked()" class="w-12rem"/>
+    </div>
+</div>

@@ -3,6 +3,7 @@ package com.openclassrooms.mddapi.models;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -31,6 +32,8 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     @JsonIgnore
     private String password;
+
+    private List<Subject> subjects;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

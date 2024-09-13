@@ -1,0 +1,60 @@
+<div class="flex flex-column align-items-center">
+    <div class="absolute left-0 ml-2 md:ml-3 mt-3">
+        <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" (click)="onBackButtonClicked()"/>
+    </div>
+
+    <p class="text-2xl text-color text-center mb-6">Profil utilisateur</p>
+    <form [formGroup]="profileUpdateForm" class="flex flex-column gap-5 p-fluid w-9 lg:w-3 mb-6" (ngSubmit)="onFormSubmitted()" (input)="onFormUpdated()">
+        <p-floatLabel>
+            <input id="username" type="text" pInputText formControlName="username" pAutoFocus [autofocus]="true" [variant]="'filled'" [ngClass]="{'p-variant-filled': !usernameDirty}"/>
+            <label for="username">Nom d'utilisateur</label>
+        </p-floatLabel>
+
+        <p-floatLabel>
+            <input id="email" type="email" pInputText formControlName="email" pAutoFocus [autofocus]="true" [variant]="'filled'" [ngClass]="{'p-variant-filled': !emailDirty}"/>
+            <label for="email">E-mail</label>
+        </p-floatLabel>
+
+        <p-floatLabel>
+            <p-password [feedback]="true" [toggleMask]="true" formControlName="password">
+                <ng-template pTemplate="content"></ng-template>
+                <ng-template pTemplate="footer">
+                    <p>Critères requis:</p>
+                    <ul class="text-red-400">
+                        <li [ngClass]="{'text-green-400': profileUpdateForm.get('password')?.value?.match('.{8,}')}">Minimum 8 caractères</li>
+                        <li [ngClass]="{'text-green-400': profileUpdateForm.get('password')?.value?.match('^(?=.*[A-Z])')}">Minimum 1 lettre majuscule</li>
+                        <li [ngClass]="{'text-green-400': profileUpdateForm.get('password')?.value?.match('(?=.*[a-z])')}">Minimum 1 lettre minuscule</li>
+                        <li [ngClass]="{'text-green-400': profileUpdateForm.get('password')?.value?.match('(.*[0-9].*)')}">Minimum 1 chiffre</li>
+                        <li [ngClass]="{'text-green-400': profileUpdateForm.get('password')?.value?.match('(?=.*[!@#$%^&*])')}">Minimum 1 caractère spécial</li>
+                    </ul>
+                </ng-template>
+            </p-password>
+            <label for="password">Nouveau mot de passe</label>
+        </p-floatLabel>
+
+        <p-button type="submit" label="Mettre à jour le profil" icon="pi pi-user-edit" [disabled]="profileUpdateForm.valid == false || (!usernameDirty && !emailDirty && !passwordDirty)"/>
+    </form>
+
+    <p-divider class="w-9 lg:w-4"/>
+</div>
+
+<p class="text-2xl text-color text-center mb-6">Abonnements</p>
+<div class="grid mx-4 my-4">
+    @for (subject of user.subjects; track subject.id) 
+    {
+        <p-card class="col-fixed">
+            <ng-template pTemplate="header">
+                <div class="flex flex-row gap-3 px-3 py-2 align-items-center">
+                    <p>{{subject.name}}</p>
+                    <p-button 
+                        severity='danger'
+                        [rounded]="true"
+                        icon="pi pi-bell-slash"
+                        pTooltip="Se désabonner"
+                        showDelay="300"
+                        (click)="onSubjectClicked(subject)"/>
+                </div>
+            </ng-template>
+        </p-card>
+    }    
+</div>

@@ -61,7 +61,7 @@ public class UserController
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
-            this.userService.update(user, updateRequest);
+            user = this.userService.update(user, updateRequest);
 
             UserDto dto = mapper.map(user, UserDto.class);
             return ResponseEntity.ok().body(dto);
@@ -73,7 +73,7 @@ public class UserController
 
     @PutMapping("{userId}/subscribe/{subjectId}")
     @Transactional
-    public ResponseEntity<String> subscribe(@PathVariable String userId, @PathVariable String subjectId) 
+    public ResponseEntity<?> subscribe(@PathVariable String userId, @PathVariable String subjectId) 
     {
         try {
             User user = this.userService.findById(Integer.valueOf(userId));
@@ -87,19 +87,19 @@ public class UserController
             }
 
             user = this.userService.subscribe(user, subject);
-            return ResponseEntity.ok().body("Successfully subscribed user");
+            return ResponseEntity.ok().build();
         } 
         catch (NumberFormatException e) {
             return ResponseEntity.badRequest().build();
         }
         catch (BadRequestException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("{userId}/unsubscribe/{subjectId}")
     @Transactional
-    public ResponseEntity<String> unsubscribe(@PathVariable String userId, @PathVariable String subjectId) 
+    public ResponseEntity<?> unsubscribe(@PathVariable String userId, @PathVariable String subjectId) 
     {
         try {
             User user = this.userService.findById(Integer.valueOf(userId));
@@ -113,13 +113,13 @@ public class UserController
             }
 
             user = this.userService.unsubscribe(user, subject);
-            return ResponseEntity.ok().body("Successfully unsubscribed user");
+            return ResponseEntity.ok().build();
         } 
         catch (NumberFormatException e) {
             return ResponseEntity.badRequest().build();
         }
         catch (BadRequestException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 }

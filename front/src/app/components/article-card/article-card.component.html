@@ -1,0 +1,20 @@
+<p-card 
+    id="card" 
+    header="{{this.article.title}}" 
+    subheader="Rédigé par {{this.article.author.username}} le {{this.article.createdAt | date: 'dd/MM/yyyy'}} à {{this.article.createdAt | date: 'HH:mm'}}"
+    (click)="onArticleClicked()">  
+
+    <div id="content" #content>
+            {{this.article.content}}
+    </div>
+
+    @if (this.isContentLong)
+    {
+        <p-button 
+            label="Lire la suite" 
+            size="small" 
+            [link]="true" 
+            class="-ml-3"
+            (click)="onArticleClicked()"/>
+    }
+</p-card>
