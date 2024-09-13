@@ -82,8 +82,11 @@ public class UserService
 
     public User update(User user, UserUpdateRequest updateRequest) 
     {
-        String encodedPassword = passwordEncoder.encode(updateRequest.getPassword());
-        updateRequest.setPassword(encodedPassword);
+        if (updateRequest.getPassword() != null)
+        {
+            String encodedPassword = passwordEncoder.encode(updateRequest.getPassword());
+            updateRequest.setPassword(encodedPassword);
+        }
 
         Date now = new Date();
         user.setUpdatedAt(new Timestamp(now.getTime()));

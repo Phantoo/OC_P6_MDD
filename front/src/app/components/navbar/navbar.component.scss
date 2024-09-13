@@ -1,0 +1,17 @@
+@use '../../../constants';
+
+#navBarLogo {
+    width: 7rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+
+@media screen and (max-width: constants.$mobileBreakpoint) {
+    #navBarLogo {
+        width: 6rem;
+    }
+}
+
+#avatar {
+    cursor: pointer;
+}

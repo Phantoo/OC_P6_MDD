@@ -1,0 +1,47 @@
+<div class="flex flex-wrap flex-column lg:flex-row gap-3 align-items-center justify-content-between ml-6 mr-6 mt-4 mb-4">
+    <p-button label="Créer un article" icon="pi pi-pen-to-square" (click)="onCreateButtonClicked()"/>
+    <p-button label="Trier par" [icon]="sortIcon" [link]="true" iconPos="right" (click)="onSortButtonClicked()"/>
+</div>
+
+<div class="grid mx-5 mb-4">    
+    @if (isLoading)
+    {
+        @for (i of [].constructor(2); track i)
+        {
+            <div id="skeleton" >
+                <div class="p-3 border-round surface-border surface-card">
+                    <div class="flex flex-column mt-2">
+                        <p-skeleton width="10rem" height="1.5rem" styleClass="mb-2" />
+                        <p-skeleton width="5rem" styleClass="mb-2" />
+                    </div>
+                    <div class="mt-4 mb-4">
+                        <p-skeleton width="100%" height="6rem" />
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    @else
+    {
+        @for (article of articles; track article.id) 
+        {
+            <app-article-card [article]=article/>
+        }
+        <!-- @empty
+        {
+            Pas d'articles
+        }  -->
+    }
+</div>
+
+<div class="flex justify-content-center my-6">
+    <p-paginator
+        class="w-auto lg:mx-0 mx-4"
+        [totalRecords]="totalNumberOfArticles"
+        [rowsPerPageOptions]="elementsPerPage"
+        [rows]="currentSize"
+        [pageLinkSize]="this.platformService.isTablet ? 1 : 3"
+        (onPageChange)="onPageChanged($event)"/>
+</div>
+
+

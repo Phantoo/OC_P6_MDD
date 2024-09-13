@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.mddapi.models.Article;
@@ -37,6 +39,14 @@ public class ArticleService
 
     public List<Article> findAll() {
         return this.articleRepository.findAll();
+    }
+
+    public Page<Article> findAll(Pageable pageable) {
+        return this.articleRepository.findAll(pageable);
+    }
+
+    public Page<Article> findAll(List<Integer> subjectIds, Pageable pageable) {
+        return this.articleRepository.findBySubjectIdIn(subjectIds, pageable);
     }
 
     public Article add(ArticleCreationRequest creationRequest)

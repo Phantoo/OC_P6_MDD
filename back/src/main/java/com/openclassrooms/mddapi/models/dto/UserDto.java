@@ -1,6 +1,9 @@
 package com.openclassrooms.mddapi.models.dto;
 
 import java.util.Date;
+import java.util.List;
+
+import com.openclassrooms.mddapi.models.Subject;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,4 +25,6 @@ public class UserDto
     private Date createdAt;
 
     private Date updatedAt;
+
+    private List<Subject> subjects;
 }

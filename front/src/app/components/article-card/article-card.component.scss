@@ -1,0 +1,30 @@
+@use "../../../constants";
+
+:host {
+    flex: 0 0 auto;
+    padding: 1.5rem;
+    width: 50%;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+}
+
+@media screen and (max-width:constants.$mobileBreakpoint) {
+    :host {
+        width: 100%;
+    }
+}
+
+#card {
+    cursor: pointer;
+}
+
+#content 
+{
+    width: calc(100%); 
+    display: -webkit-box; 
+    line-clamp: 5;
+    -webkit-line-clamp: 5; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
