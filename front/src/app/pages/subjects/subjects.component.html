@@ -1,0 +1,22 @@
+
+<h2 class="mx-5 mt-4">Thèmes:</h2>
+<div class="grid mx-4 my-4">
+    @for (subject of subjects; track subject.id) 
+    {
+        <p-card 
+            class="col-fixed">
+            <ng-template pTemplate="header">
+                <div class="flex flex-row gap-3 px-3 py-2 align-items-center">
+                    <p>{{subject.name}}</p>
+                    <p-button 
+                        [severity]="isSubscribedTo(subject) ? 'danger' : 'success'"
+                        [rounded]="true"
+                        [icon]="isSubscribedTo(subject) ? 'pi pi-bell-slash' : 'pi pi-bell'"
+                        [pTooltip]="isSubscribedTo(subject) ? 'Se désabonner' : &quot;S'abonner&quot;"
+                        showDelay="300"
+                        (click)="onSubjectClicked(subject)"/>
+                </div>
+            </ng-template>
+        </p-card>
+    }    
+</div>

@@ -1,12 +1,14 @@
-package com.openclassrooms.mddapi.dto;
+package com.openclassrooms.mddapi.models.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginRequest 
+public class RegisterRequest 
 {
     String email;
+    String username;
     String password;
 }
+

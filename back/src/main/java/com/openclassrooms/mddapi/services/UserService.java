@@ -2,21 +2,26 @@ package com.openclassrooms.mddapi.services;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 import javax.naming.AuthenticationException;
 
+import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.mddapi.dto.RegisterRequest;
+import com.openclassrooms.mddapi.models.Subject;
 import com.openclassrooms.mddapi.models.User;
+import com.openclassrooms.mddapi.models.UserDetails;
+import com.openclassrooms.mddapi.models.dto.LoginRequest;
+import com.openclassrooms.mddapi.models.dto.RegisterRequest;
+import com.openclassrooms.mddapi.models.dto.UserUpdateRequest;
 import com.openclassrooms.mddapi.repositories.UserRepository;
 
 @Service
@@ -29,19 +34,19 @@ public class UserService
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private ModelMapper modelMapper;
+    private ModelMapper mapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public Authentication login(String email, String password) throws AuthenticationException
+    public Authentication login(LoginRequest loginRequest) throws AuthenticationException
     {
-        Boolean loginValid = isUserValid(email, password);
+        Boolean loginValid = isUserValid(loginRequest.getEmail(), loginRequest.getPassword());
         if (loginValid == false)
             throw new AuthenticationException();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         return auth;
     }
@@ -57,7 +62,7 @@ public class UserService
             throw new AuthenticationException();
 
         // Create
-        User user = modelMapper.map(registerRequest, User.class);
+        User user = mapper.map(registerRequest, User.class);
 
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
         user.setPassword(encodedPassword);
@@ -69,6 +74,48 @@ public class UserService
         // Save
         User savedUser = userRepository.save(user);
         return savedUser;
+    }
+
+    public User findById(Integer id) {
+        return this.userRepository.findById(id).orElse(null);
+    }
+
+    public User update(User user, UserUpdateRequest updateRequest) 
+    {
+        if (updateRequest.getPassword() != null)
+        {
+            String encodedPassword = passwordEncoder.encode(updateRequest.getPassword());
+            updateRequest.setPassword(encodedPassword);
+        }
+
+        Date now = new Date();
+        user.setUpdatedAt(new Timestamp(now.getTime()));
+
+        mapper.map(updateRequest, user);
+
+        return this.userRepository.save(user);
+    }
+
+    public User subscribe(User user, Subject subject) throws BadRequestException
+    {
+        List<Subject> subjects = user.getSubjects();
+        if (subjects.contains(subject))
+            throw new BadRequestException("User already subscribed");
+
+        subjects.add(subject);
+        user.setSubjects(subjects);
+        return this.userRepository.save(user);
+    }
+
+    public User unsubscribe(User user, Subject subject) throws BadRequestException
+    {
+        List<Subject> subjects = user.getSubjects();
+        if (subjects.contains(subject) == false)
+            throw new BadRequestException("User not subscribed");
+
+        subjects.remove(subject);
+        user.setSubjects(subjects);
+        return this.userRepository.save(user);
     }
 
     // Returns true only if the username/password matches an existing account

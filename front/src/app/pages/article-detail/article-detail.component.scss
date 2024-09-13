@@ -1,0 +1,13 @@
+@use "../../../constants";
+
+.article-margin {
+    margin-left: 5rem;
+    margin-right: 5rem;
+}
+
+@media screen and (max-width: constants.$mobileBreakpoint) {
+    .article-margin {
+        margin-left: 4rem;
+        margin-right: 4rem;
+    }
+}

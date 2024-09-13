@@ -3,11 +3,13 @@ package com.openclassrooms.mddapi.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openclassrooms.mddapi.dto.LoginRequest;
-import com.openclassrooms.mddapi.dto.LoginResponse;
-import com.openclassrooms.mddapi.dto.RegisterRequest;
-import com.openclassrooms.mddapi.dto.RegisterResponse;
 import com.openclassrooms.mddapi.models.User;
+import com.openclassrooms.mddapi.models.UserDetails;
+import com.openclassrooms.mddapi.models.dto.LoginRequest;
+import com.openclassrooms.mddapi.models.dto.LoginResponse;
+import com.openclassrooms.mddapi.models.dto.RegisterRequest;
+import com.openclassrooms.mddapi.models.dto.RegisterResponse;
+import com.openclassrooms.mddapi.models.dto.UserDto;
 import com.openclassrooms.mddapi.services.JWTService;
 import com.openclassrooms.mddapi.services.UserService;
 
@@ -15,6 +17,7 @@ import io.micrometer.common.util.StringUtils;
 
 import javax.naming.AuthenticationException;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,6 +35,9 @@ public class AuthController
     @Autowired
     private JWTService jwtService;
 
+    @Autowired
+    private ModelMapper mapper;
+
     @PostMapping("login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) 
     {
@@ -39,7 +45,7 @@ public class AuthController
         Authentication authentication = null;
         Boolean thrownException = false;
         try {
-            authentication = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            authentication = userService.login(loginRequest);
         }
         catch (AuthenticationException e) {
             thrownException = true;
@@ -50,13 +56,17 @@ public class AuthController
             authentication == null || 
             authentication.isAuthenticated() == false)
         {
-            LoginResponse response = new LoginResponse("Error during authentication", "");
+            LoginResponse response = new LoginResponse(null, "");
             return ResponseEntity.status(401).body(response);
         }
 
+        // Fetch user details
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDto dto = mapper.map(userDetails, UserDto.class);
+
         // Generate token and return success
         String token = jwtService.generateToken(authentication);
-        LoginResponse response = new LoginResponse("User logged in successfully", token);
+        LoginResponse response = new LoginResponse(dto, token);
         return ResponseEntity.ok(response);        
     }
     
@@ -67,7 +77,7 @@ public class AuthController
             StringUtils.isBlank(registerRequest.getEmail()) ||
             StringUtils.isBlank(registerRequest.getPassword())) 
         {
-            RegisterResponse response = new RegisterResponse("One or more empty fields", "");
+            RegisterResponse response = new RegisterResponse(null, "");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -84,7 +94,7 @@ public class AuthController
         if (user == null ||
             registrationException)
         {
-            RegisterResponse response = new RegisterResponse("Error during account registration", "");
+            RegisterResponse response = new RegisterResponse(null, "");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -92,7 +102,8 @@ public class AuthController
         Authentication authentication = null;
         Boolean loginException = false;
         try {
-            authentication = userService.login(registerRequest.getEmail(), registerRequest.getPassword());
+            LoginRequest loginRequest = mapper.map(registerRequest, LoginRequest.class);
+            authentication = userService.login(loginRequest);
         }
         catch (AuthenticationException e) {
             loginException = true;
@@ -102,13 +113,14 @@ public class AuthController
             authentication == null ||
             authentication.isAuthenticated() == false)
         {
-            RegisterResponse response = new RegisterResponse("Error during authentication", "");
+            RegisterResponse response = new RegisterResponse(null, "");
             return ResponseEntity.badRequest().body(response);
         }
 
         // Generate token and return success
+        UserDto dto = mapper.map(user, UserDto.class);
         String token = jwtService.generateToken(authentication);
-        RegisterResponse response = new RegisterResponse("User registered successfully", token);
+        RegisterResponse response = new RegisterResponse(dto, token);
         return ResponseEntity.ok(response);
     }
 }

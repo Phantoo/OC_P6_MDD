@@ -1,1 +1,58 @@
+@use 'constants';
+
 /* You can add global styles to this file, and also import other style files */
+@import "primeng/resources/themes/lara-dark-purple/theme.css";
+@import "primeng/resources/primeng.min.css";
+@import "primeicons/primeicons.css";
+@import "primeflex/primeflex.css";
+
+$gutter: 3rem;
+
+
+body {
+    background-color: var(--surface-ground);
+    margin: 0;
+    padding: 0;
+}
+
+.p-menubar {
+    height: 4rem;
+    background: var(--surface-ground);
+    border-radius: 0;
+    border-color: var(--surface-border);
+    border-top: none;
+    border-right: none;
+    border-left: none;
+}
+
+// Handles displaying the mobile menu button to the right
+.p-menubar-button {
+    width: 2rem;
+    margin-left: calc(100% - 8.5rem);
+}
+
+@media screen and (min-width: constants.$mobileBreakpoint) 
+{
+    // Handles displaying desktop menu items to the right
+    p-menubarsub {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+
+@media screen and (max-width: constants.$mobileBreakpoint) 
+{
+    // Handles mobile menu items
+    .p-menubar-root-list {
+        background: var(--surface-overlay);
+        border: none;
+    }
+
+    .p-menuitem-separator {
+        border: 1px solid var(--surface-c);
+        width:calc(100% - 2rem);
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+}

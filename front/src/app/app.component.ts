@@ -1,44 +1,67 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { AuthService } from './auth/services/auth.service';
-import { LoginRequest } from './auth/interfaces/login-request.interface';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NavbarComponent } from "./components/navbar/navbar.component";
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { SessionInformation } from './auth/interfaces/session-information.interface';
 import { SessionService } from './auth/services/session.service';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { PlatformService } from './services/platform.service';
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [RouterOutlet, FormsModule],
+    imports: [RouterOutlet, FormsModule, NavbarComponent, ToastModule ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
+    providers: [MessageService]
 })
-export class AppComponent {
+export class AppComponent implements OnInit
+{
     title = 'MDDApp';
 
-    email: string = '';
-    password: string = '';
-    requestResponse: string = 'undefined';
+    constructor(
+        private router: Router,
+        private sessionService: SessionService,
+        public platformService: PlatformService,
+        @Inject(DOCUMENT) private document: Document
+        ) {}
 
-    constructor(private authService: AuthService, private sessionService: SessionService) {
+    ngOnInit(): void 
+    {
+        const localStorage = this.document.defaultView?.localStorage;
+        if (!localStorage)
+            return;
+
+        // Get session informations
+        const sessionString = localStorage.getItem('SESSION');
+        if (sessionString === null)
+            return;
+        const sessioninfo: SessionInformation = JSON.parse(sessionString);
+
+        // Get token expiration time
+        const jwtToken = JSON.parse(atob(sessioninfo.token.split('.')[1]));
+        const expirationDate = new Date(jwtToken.exp * 1000);
+        if (expirationDate.getTime() < Date.now())
+            localStorage.removeItem('SESSION');
+        else
+            this.sessionService.logIn(sessioninfo);
+
+        // AFK Logout
+        if (isPlatformBrowser(PLATFORM_ID))
+        {
+            const timeout = expirationDate.getTime() - Date.now();
+            setTimeout(() => this.onTokenExpired, timeout);
+        }
     }
 
-    onSubmit(): void {
-        let request: LoginRequest = {
-            email: this.email,
-            password: this.password
-        }
-        this.authService.login(request).subscribe(
-            response => {
-                this.requestResponse = JSON.stringify(response, null, '\t');
-                // Enables the 'Bearer' header for requests
-                this.sessionService.logIn(response.token);
-        }, 
-            error => {
-                if (this.sessionService.isLogged) {
-                    // Disables the 'Bearer' header for requests
-                    this.sessionService.logOut();
-                    this.requestResponse = 'undefined';
-                }
-        });
+    shouldShowNavBar(): boolean {
+        return this.router.url !== '/landing';
+    }
+
+    onTokenExpired() {
+        this.sessionService.logOut();
+        this.router.navigate(['/landing']);
     }
 }

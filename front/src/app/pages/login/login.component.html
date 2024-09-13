@@ -1,0 +1,21 @@
+<div class="flex flex-column align-items-center">
+    <div class="absolute left-0 ml-2 md:ml-3 mt-3">
+        <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" (click)="onBackButtonClicked()"/>
+    </div>
+
+    <img src="../../../assets/logo.svg" class="w-8 mt-8 block lg:hidden">
+    <p class="text-2xl text-color text-center mb-6">Se connecter</p>
+    <form [formGroup]="loginForm" class="flex flex-column gap-5 p-fluid w-9 lg:w-3 mb-6" (ngSubmit)="onSubmit()">
+        <p-floatLabel>
+            <input id="email" type="email" pInputText formControlName="email" pAutoFocus [autofocus]="true"/>
+            <label for="email">E-mail</label>
+        </p-floatLabel>
+        
+        <p-floatLabel>
+            <p-password [feedback]="false" [toggleMask]="true" formControlName="password"/>
+            <label for="password">Mot de passe</label>
+        </p-floatLabel>
+
+        <p-button type="submit" label="Se connecter" icon="pi pi-sign-in" [disabled]="loginForm.valid == false"/>
+    </form>
+</div>
