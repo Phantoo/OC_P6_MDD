@@ -3,7 +3,6 @@ package com.openclassrooms.mddapi.controllers;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,10 +21,15 @@ import com.openclassrooms.mddapi.models.dto.ArticleDto;
 import com.openclassrooms.mddapi.models.dto.CommentCreationRequest;
 import com.openclassrooms.mddapi.models.dto.CommentCreationResponse;
 import com.openclassrooms.mddapi.models.dto.CommentDto;
-import com.openclassrooms.mddapi.services.ArticleService;
+import com.openclassrooms.mddapi.interfaces.ArticleService;
 
 import io.micrometer.common.util.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("articles")
+@AllArgsConstructor
 public class ArticleController 
 {
     @Autowired
@@ -42,6 +47,21 @@ public class ArticleController
     private ModelMapper mapper;
 
     @GetMapping("/{id}")
+    @Operation(description = "Fetch atricle corresponding to the specified id", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Fetch success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = ArticleDto.class))),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "Article not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<ArticleDto> findById(@PathVariable String id) 
     {
         try {
@@ -56,27 +76,39 @@ public class ArticleController
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    // @GetMapping
-    // public ResponseEntity<List<ArticleDto>> findAll() 
-    // {
-    //     List<Article> articles = this.articleService.findAll();
-    //     List<ArticleDto> dtos = mapper.map(articles, new TypeToken<List<ArticleDto>>() {}.getType());
-    //     return ResponseEntity.ok().body(dtos);
-    // }
 
     @GetMapping
-    public ResponseEntity<Page<ArticleDto>> findAll(@RequestParam List<Integer> subjects, Pageable pageable) 
+    @Operation(description = "Fetch articles corresponding to the specified page and subjects", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Fetch success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = Page.class))),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<Page<ArticleDto>> findAll(@RequestParam(required = false) List<Integer> subjects, Pageable pageable) 
     {
         Page<Article> articles = this.articleService.findAll(subjects, pageable);
         Page<ArticleDto> dtos = articles.map(article -> {
             return mapper.map(article, ArticleDto.class);
         });
-        // Page<ArticleDto> dtos = mapper.map(articles, new TypeToken<Page<ArticleDto>>() {}.getType());
         return ResponseEntity.ok().body(dtos);
     }
 
     @PostMapping
+    @Operation(description = "Create article", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Creation success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = ArticleCreationResponse.class))),
+        @ApiResponse(responseCode = "400",
+                    description = "One or more fields are empty",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<ArticleCreationResponse> add(@RequestBody ArticleCreationRequest creationRequest) 
     {
         if (StringUtils.isBlank(creationRequest.getTitle()) ||
@@ -96,6 +128,21 @@ public class ArticleController
     
     @PostMapping("{id}/comment")
     @Transactional
+    @Operation(responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Comment article corresponding to the specified id", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = CommentCreationRequest.class))),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "Article not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<CommentCreationResponse> comment(@PathVariable String id, @RequestBody CommentCreationRequest creationRequest) 
     {
         try {

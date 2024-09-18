@@ -10,10 +10,16 @@ import com.openclassrooms.mddapi.models.dto.LoginResponse;
 import com.openclassrooms.mddapi.models.dto.RegisterRequest;
 import com.openclassrooms.mddapi.models.dto.RegisterResponse;
 import com.openclassrooms.mddapi.models.dto.UserDto;
-import com.openclassrooms.mddapi.services.JWTService;
-import com.openclassrooms.mddapi.services.UserService;
+import com.openclassrooms.mddapi.interfaces.JwtService;
+import com.openclassrooms.mddapi.interfaces.UserService;
 
 import io.micrometer.common.util.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.StringToClassMapItem;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import lombok.AllArgsConstructor;
 
 import javax.naming.AuthenticationException;
 
@@ -27,18 +33,37 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("auth")
+@AllArgsConstructor
 public class AuthController 
 {
     @Autowired
     private UserService userService;
 
     @Autowired
-    private JWTService jwtService;
+    private JwtService jwtService;
 
     @Autowired
     private ModelMapper mapper;
 
     @PostMapping("login")
+    @Operation(responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Login success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(type = "object", 
+                            properties = { 
+                                @StringToClassMapItem(key = "user", value = UserDto.class), 
+                                @StringToClassMapItem(key = "token", value = String.class) 
+                            }))),
+        @ApiResponse(responseCode = "401",
+                    description = "Login failure",
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(type = "object", 
+                            properties = { 
+                                @StringToClassMapItem(key = "user", value = Object.class), 
+                                @StringToClassMapItem(key = "token", value = String.class) 
+                            }))),
+    })
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) 
     {
         // Try logging the user in        
@@ -71,6 +96,24 @@ public class AuthController
     }
     
     @PostMapping("register")
+    @Operation(responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Register success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(type = "object", 
+                            properties = { 
+                                @StringToClassMapItem(key = "user", value = UserDto.class), 
+                                @StringToClassMapItem(key = "token", value = String.class) 
+                            }))),
+        @ApiResponse(responseCode = "400",
+                    description = "Register failure",
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(type = "object", 
+                            properties = { 
+                                @StringToClassMapItem(key = "user", value = Object.class), 
+                                @StringToClassMapItem(key = "token", value = String.class) 
+                            }))),
+    })
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) 
     {
         if (StringUtils.isBlank(registerRequest.getUsername()) ||

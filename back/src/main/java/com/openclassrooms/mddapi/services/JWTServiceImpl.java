@@ -14,10 +14,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
+import com.openclassrooms.mddapi.interfaces.JwtService;
 import com.openclassrooms.mddapi.models.UserDetails;
 
+import lombok.AllArgsConstructor;
+
 @Service
-public class JWTService 
+@AllArgsConstructor
+public class JWTServiceImpl implements JwtService
 {
     @Autowired
     private JwtEncoder encoder;

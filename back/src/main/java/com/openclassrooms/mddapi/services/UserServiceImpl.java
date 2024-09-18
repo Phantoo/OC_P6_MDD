@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.openclassrooms.mddapi.interfaces.UserService;
 import com.openclassrooms.mddapi.models.Subject;
 import com.openclassrooms.mddapi.models.User;
 import com.openclassrooms.mddapi.models.UserDetails;
@@ -24,8 +25,11 @@ import com.openclassrooms.mddapi.models.dto.RegisterRequest;
 import com.openclassrooms.mddapi.models.dto.UserUpdateRequest;
 import com.openclassrooms.mddapi.repositories.UserRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
-public class UserService 
+@AllArgsConstructor
+public class UserServiceImpl implements UserService
 {
     @Autowired
     private UserRepository userRepository;
@@ -82,11 +86,17 @@ public class UserService
 
     public User update(User user, UserUpdateRequest updateRequest) 
     {
-        if (updateRequest.getPassword() != null)
+        if (updateRequest.getPassword() != null &&
+            updateRequest.getPassword() != "")
         {
             String encodedPassword = passwordEncoder.encode(updateRequest.getPassword());
             updateRequest.setPassword(encodedPassword);
         }
+        else
+        {
+            updateRequest.setPassword(user.getPassword());
+        }
+
 
         Date now = new Date();
         user.setUpdatedAt(new Timestamp(now.getTime()));

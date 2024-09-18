@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Article } from '../../interfaces/article.interface';
 import { ArticleService } from '../../services/article.service';
@@ -14,6 +14,7 @@ import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angula
 import { CommentCreationRequest } from '../../interfaces/comment-creation-request.interface';
 import { SessionService } from '../../auth/services/session.service';
 import { Message, MessageService } from 'primeng/api';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-article-detail',
@@ -22,7 +23,7 @@ import { Message, MessageService } from 'primeng/api';
   templateUrl: './article-detail.component.html',
   styleUrl: './article-detail.component.scss'
 })
-export class ArticleDetailComponent implements OnInit
+export class ArticleDetailComponent implements OnInit, OnDestroy
 {
     article?: Article;
     
@@ -40,6 +41,8 @@ export class ArticleDetailComponent implements OnInit
         }
     ]
 
+    articlesSubscription?: Subscription;
+
     constructor (
         private articleService: ArticleService,
         private activatedRoute: ActivatedRoute,
@@ -49,42 +52,49 @@ export class ArticleDetailComponent implements OnInit
         private location: Location
     ) {}
 
-    ngOnInit() 
+
+    ngOnInit(): void 
     {
         const id: number = this.activatedRoute.snapshot.params['id'];
-        this.articleService.getById(id).subscribe(article => {
-            this.article = article;
+        this.articlesSubscription = this.articleService.getById(id).subscribe({
+            next: article => {
+                this.article = article;
+            },
+            error: _ => this.messageService.add({severity: 'error', summary:  "Erreur durant le chargement de l'article", detail: `Veuillez réessayer plus tard` }) 
         });
     }
 
-    onBackButtonClicked() {
+    ngOnDestroy(): void 
+    {
+        this.articlesSubscription?.unsubscribe();
+    }
+
+    onBackButtonClicked(): void
+    {
         this.location.back();
     }
 
-    onSendComment()
+    onSendComment(): void
     {
+        const authorId: number = this.sessionService.sessionInfo!.user.id;
         const content: string = this.commentCreationForm.getRawValue().comment;
-        const authorId: number | undefined = this.sessionService.sessionInfo?.user.id;
-        if (authorId === undefined)
-        {
-            this.router.navigate(['/landing']);
-            return;
-        }
-
         const articleId: number = this.activatedRoute.snapshot.params['id'];
         const request: CommentCreationRequest = {
             content: content,
             authorId: authorId
         }
-        this.articleService.comment(articleId, request).subscribe(response => 
-        {
-            this.commentCreationForm.reset();
-            this.messageService.add({severity: 'success', summary:  'Commentaire envoyé', detail: `${response.message}` });
-            
-            // Reload page
-            this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
-                this.router.navigate([`/article/${articleId}`]);
-            });
+        this.articleService.comment(articleId, request).subscribe({
+            next: response => 
+            {
+                this.commentCreationForm.reset();
+                this.messageService.add({severity: 'success', summary:  'Commentaire envoyé', detail: `${response.message}` });
+                
+                // Reload page
+                this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
+                    this.router.navigate([`/article/${articleId}`]);
+                });
+            },
+            error: _ => this.messageService.add({severity: 'error', summary:  "Erreur durant la création du commentaire", detail: `Veuillez réessayer plus tard` })
         });
     }
 }

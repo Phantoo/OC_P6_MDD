@@ -24,7 +24,7 @@ export class ArticleCardComponent implements AfterViewInit
         private router: Router,
         private changeDetectorRef: ChangeDetectorRef) {}
 
-    ngAfterViewInit() 
+    ngAfterViewInit(): void
     {
         // Display "Read More" if article is long enough
         const height: number = this.contentDiv.nativeElement.offsetHeight;
@@ -34,7 +34,7 @@ export class ArticleCardComponent implements AfterViewInit
         }
     }
 
-    onArticleClicked() 
+    onArticleClicked(): void
     {
         this.router.navigate([`/article/${this.article.id}`])
     }

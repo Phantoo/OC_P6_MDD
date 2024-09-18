@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { User } from '../../auth/interfaces/user.interface';
 import { Router } from '@angular/router';
 import { SessionService } from '../../auth/services/session.service';
@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
 import { CardModule } from 'primeng/card';
 import { Subject } from '../../interfaces/subject.interface';
+import { Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -23,7 +24,7 @@ import { Subject } from '../../interfaces/subject.interface';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
-export class ProfileComponent implements OnInit 
+export class ProfileComponent implements OnInit, OnDestroy
 {
     strongPasswordRegex: RegExp = /^(?=[^A-Z]*[A-Z])(?=[^a-z]*[a-z])(?=\D*\d).{8,}$/;
 
@@ -47,6 +48,9 @@ export class ProfileComponent implements OnInit
     emailDirty: Boolean = false;
     passwordDirty: Boolean = false;
 
+    updateSubscription?: Subscription;
+    subjectsSubscription?: Subscription;
+
     constructor(
         private router: Router,
         private sessionService: SessionService,
@@ -55,16 +59,10 @@ export class ProfileComponent implements OnInit
         private location: Location
     ) {}
 
-    ngOnInit()
-    {
-        if (this.sessionService.isLogged == false ||
-            this.sessionService.sessionInfo === undefined)
-        {
-            this.router.navigate(['/landing']);
-            return;
-        }
 
-        this.user = this.sessionService.sessionInfo.user;
+    ngOnInit(): void
+    {
+        this.user = this.sessionService.sessionInfo!.user;
         this.profileUpdateForm.setValue({
             username: this.user.username,
             email: this.user.email,
@@ -73,12 +71,19 @@ export class ProfileComponent implements OnInit
         this.onFormUpdated();
     }
 
-    onBackButtonClicked() {
+    ngOnDestroy(): void 
+    {
+        this.updateSubscription?.unsubscribe();
+        this.subjectsSubscription?.unsubscribe();
+    }
+
+    onBackButtonClicked(): void
+    {
         this.location.back();
     }
 
     // Check both fields and mark them as pristine if their content is the same as the original value
-    onFormUpdated()
+    onFormUpdated(): void
     {
         const usernameControl = this.profileUpdateForm.controls['username'];
         const usernamePristine = this.user.username === usernameControl.value;
@@ -96,46 +101,48 @@ export class ProfileComponent implements OnInit
         this.passwordDirty = passwordControl.value !== '';
     }
 
-    onFormSubmitted()
+    onFormSubmitted(): void
     {
         const userId = this.sessionService.sessionInfo!.user.id;
         const updateRequest: ProfileUpdateRequest = this.profileUpdateForm.getRawValue();
-        this.userService.update(userId, updateRequest).subscribe({
+        this.updateSubscription = this.userService.update(userId, updateRequest).subscribe({
             next: updatedUser => this.onUpdateSuccess(updatedUser),
             error: _ => this.onUpdateFailure()
         })
     }
 
-    onUpdateSuccess(updatedUser: User) 
+    onUpdateSuccess(updatedUser: User): void
     {
         // Fetch user so we can refresh session informations and then reload page to display changes
-        const userId = this.sessionService.sessionInfo!.user.id;
-        this.userService.getById(userId).subscribe(user => {
-            this.sessionService.refreshUserInfo(user);
-            this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
-                this.router.navigate(['/profile']);
-            });
+        this.sessionService.refreshUserInfo(updatedUser);
+        this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
+            this.router.navigate(['/profile']);
         });
         this.messageService.add({severity: 'success', summary:  'Succès', detail: "Profil mis à jour avec succès"});
     }
 
-    onUpdateFailure() 
+    onUpdateFailure(): void 
     {
         this.messageService.add({severity: 'error', summary:  'Erreur', detail: `Echec de la mise à jour, veuillez vérifier que les champs sont corrects` });
     }
 
-    onSubjectClicked(subject: Subject)
+    onSubjectClicked(subject: Subject): void
     {
         const userId = this.sessionService.sessionInfo!.user.id;
-        this.userService.unsubscribe(userId, subject.id).subscribe(_ => 
-        {
-            // Fetch user so we can refresh session informations and then reload page to display changes
-            this.userService.getById(userId).subscribe(user => {
-                this.sessionService.refreshUserInfo(user);
-                this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
-                    this.router.navigate(['/profile']);
+        this.subjectsSubscription = this.userService.unsubscribe(userId, subject.id).subscribe({
+            next: _ => 
+            {
+                // Fetch user so we can refresh session informations and then reload page to display changes
+                this.userService.getById(userId).pipe(take(1)).subscribe(user => {
+                    this.sessionService.refreshUserInfo(user);
+                    this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
+                        this.router.navigate(['/profile']);
+                    });
                 });
-            });
+            },
+            error: _ => {
+                this.messageService.add({severity: 'error', summary:  'Erreur', detail: `Impossible de se désabonner, veuillez réessayer plus tard` });
+            }
         });
     }   
 }

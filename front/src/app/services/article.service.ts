@@ -7,6 +7,7 @@ import { CommentCreationResponse } from '../interfaces/comment-creation-response
 import { ArticleCreationRequest } from '../interfaces/article-creation-request.interface';
 import { ArticleCreationResponse } from '../interfaces/article-creation-response.interface';
 import { Subject } from '../interfaces/subject.interface';
+import { Page } from '../interfaces/page.interface';
 
 @Injectable({
     providedIn: 'root'
@@ -17,14 +18,14 @@ export class ArticleService
 
     constructor(private httpClient: HttpClient) { }
 
-    public getAll(page: number = 0, size: number = 1, subjects: Subject[]): Observable<any> 
+    public getAll(page: number = 0, size: number = 1, subjects: Subject[]): Observable<Page> 
     {
         const parsedSubjects = subjects.map(s => s.id);
         const params = new HttpParams({
             fromObject: { 'subjects': parsedSubjects }})
             .set("page", page)
             .set("size", size);
-        return this.httpClient.get<any>(`${this.servicePath}`, {
+        return this.httpClient.get<Page>(`${this.servicePath}`, {
             params: params
         });
     }

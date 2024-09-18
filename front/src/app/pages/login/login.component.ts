@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IconFieldModule } from 'primeng/iconfield'
 import { InputIconModule } from 'primeng/inputicon'
@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { AutoFocusModule } from 'primeng/autofocus';
 import { Location } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -23,7 +24,7 @@ import { Location } from '@angular/common';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnInit 
+export class LoginComponent implements OnInit, OnDestroy
 {
     loginForm = new FormGroup({
         email: new FormControl('', { 
@@ -37,6 +38,8 @@ export class LoginComponent implements OnInit
             initialValueIsDefault: true
         })
     })
+
+    loginSubscription?: Subscription;
 
     constructor(
         private authService: AuthService, 
@@ -52,17 +55,22 @@ export class LoginComponent implements OnInit
             this.router.navigate(['/feed']);
     }
 
+    ngOnDestroy(): void 
+    {
+        this.loginSubscription?.unsubscribe();
+    }
+
     onSubmit(): void 
     {
         let loginRequest: LoginRequest = this.loginForm.getRawValue();
         this.sessionService.logOut();
-        this.authService.login(loginRequest).subscribe({
+        this.loginSubscription = this.authService.login(loginRequest).subscribe({
             next: response => this.onLoginSuccess(response),
             error: _ => this.onLoginFailure()
         })
     }
 
-    onLoginSuccess(response: SessionInformation) 
+    onLoginSuccess(response: SessionInformation): void
     {
         // Enables the 'Bearer' header for requests
         this.sessionService.logIn(response);
@@ -70,12 +78,13 @@ export class LoginComponent implements OnInit
         this.messageService.add({severity: 'success', summary:  'Connexion réussie', detail: `Connecté en tant que ${response.user.username}` });
     }
 
-    onLoginFailure() 
+    onLoginFailure(): void
     {
         this.messageService.add({severity: 'error', summary:  'Connexion échouée', detail: `Veuillez vérifier que les identifiants sont corrects` });
     }
 
-    onBackButtonClicked() {
+    onBackButtonClicked(): void
+    {
         this.location.back();
     }
 }

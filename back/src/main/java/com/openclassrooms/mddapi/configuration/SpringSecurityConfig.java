@@ -22,17 +22,29 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import com.openclassrooms.mddapi.filters.AuthTokenFilter;
 import com.openclassrooms.mddapi.services.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig 
 {
+    private static final String[] OPENAPI_WHITELIST = {
+        "/swagger-resources",
+        "/swagger-resources/**",
+        "/configuration/ui",
+        "/configuration/security",
+        "/swagger-ui.html",
+        "/webjars/**",
+        "/api-docs/**",
+        "/api/public/**",
+        "/api/public/authenticate",
+        "/actuator/*",
+        "/swagger-ui/**"
+    };
+
     @Value("${security.jwtKey}")
     private String jwtKey;
 
@@ -54,14 +66,14 @@ public class SpringSecurityConfig
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(OPENAPI_WHITELIST).permitAll();
                 auth.requestMatchers("/auth/login").permitAll();
                 auth.requestMatchers("/auth/register").permitAll();
 
                 auth.anyRequest().authenticated();
             })
             .httpBasic(Customizer.withDefaults())
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-            .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
             
         return http.build();
     }
@@ -73,11 +85,6 @@ public class SpringSecurityConfig
         builder.userDetailsService(userDetailsService)
             .passwordEncoder(passwordEncoder);
         return builder.build();
-    }
-
-    @Bean
-    public AuthTokenFilter authenticationJwtTokenFilter() {
-      return new AuthTokenFilter();
     }
 
     @Bean

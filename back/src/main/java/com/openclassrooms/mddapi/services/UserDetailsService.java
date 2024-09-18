@@ -9,8 +9,10 @@ import com.openclassrooms.mddapi.models.UserDetails;
 import com.openclassrooms.mddapi.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService
 {
     @Autowired

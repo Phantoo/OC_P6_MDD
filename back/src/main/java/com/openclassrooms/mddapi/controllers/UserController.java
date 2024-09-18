@@ -13,10 +13,15 @@ import com.openclassrooms.mddapi.models.Subject;
 import com.openclassrooms.mddapi.models.User;
 import com.openclassrooms.mddapi.models.dto.UserDto;
 import com.openclassrooms.mddapi.models.dto.UserUpdateRequest;
-import com.openclassrooms.mddapi.services.SubjectService;
-import com.openclassrooms.mddapi.services.UserService;
+import com.openclassrooms.mddapi.interfaces.SubjectService;
+import com.openclassrooms.mddapi.interfaces.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("users")
+@AllArgsConstructor
 public class UserController 
 {
     @Autowired
@@ -36,6 +42,21 @@ public class UserController
     private ModelMapper mapper;
 
     @GetMapping("/{id}")
+    @Operation(description = "Fetch user corresponding to the specified id", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Fetch success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = UserDto.class))),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<UserDto> findById(@PathVariable String id) 
     {
         try {
@@ -43,8 +64,6 @@ public class UserController
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
-
-            //List<Subject> subjects = user.getSubjects();
 
             UserDto dto = mapper.map(user, UserDto.class);
             return ResponseEntity.ok().body(dto);
@@ -54,6 +73,21 @@ public class UserController
     }
 
     @PutMapping("/{id}")
+    @Operation(description = "Update user corresponding to the specified id", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Update success", 
+                    content = @Content(mediaType = "application/json", 
+                        schema = @Schema(implementation = UserDto.class))),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<UserDto> update(@PathVariable String id, @RequestBody UserUpdateRequest updateRequest) 
     {
         try {
@@ -67,12 +101,26 @@ public class UserController
             return ResponseEntity.ok().body(dto);
         } 
         catch (NumberFormatException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("{userId}/subscribe/{subjectId}")
     @Transactional
+    @Operation(description = "Subscribe user corresponding to the specified id to the specified subject", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Subscribe success", 
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "Subject or User not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<?> subscribe(@PathVariable String userId, @PathVariable String subjectId) 
     {
         try {
@@ -99,6 +147,20 @@ public class UserController
 
     @PutMapping("{userId}/unsubscribe/{subjectId}")
     @Transactional
+    @Operation(description = "Unsubscribe user corresponding to the specified id to the specified subject", responses = {
+        @ApiResponse(responseCode = "200", 
+                    description = "Unsubscribe success", 
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "400",
+                    description = "ID not parsable as Integer",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404",
+                    description = "Subject or User not found",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401",
+                    description = "Authentication failure",
+                    content = @Content(mediaType = "application/json"))
+    })
     public ResponseEntity<?> unsubscribe(@PathVariable String userId, @PathVariable String subjectId) 
     {
         try {

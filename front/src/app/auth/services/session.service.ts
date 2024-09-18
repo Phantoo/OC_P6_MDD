@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SessionInformation } from '../interfaces/session-information.interface';
-import { UserService } from '../../services/user.service';
 import { User } from '../interfaces/user.interface';
+import { CookieService } from 'ngx-cookie';
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +14,7 @@ export class SessionService
 
     private isLoggedSubject = new BehaviorSubject<boolean>(this.isLogged);
 
-    constructor(private userService: UserService) {}
+    constructor(private cookieService: CookieService) {}
 
     // Used to listen to the logged state
     public $isLogged(): Observable<boolean> {
@@ -30,7 +30,7 @@ export class SessionService
         this.sessionInfo = response;
         this.isLogged = true;
 
-        localStorage.setItem('SESSION', JSON.stringify(response));
+        this.cookieService.putObject("SESSION", response);
 
         this.propagate();
     }
@@ -39,18 +39,19 @@ export class SessionService
     {
         this.sessionInfo = undefined;
         this.isLogged = false;
-
-        localStorage.removeItem('SESSION');
+        
+        this.cookieService.remove("SESSION");
 
         this.propagate();
     }
 
-    public refreshUserInfo(user: User)
+    public refreshUserInfo(user: User): void
     {
         if (this.isLogged == false)
             return;
         this.sessionInfo!.user = user;
-        localStorage.setItem('SESSION', JSON.stringify(this.sessionInfo));
+        
+        this.cookieService.putObject("SESSION", this.sessionInfo!);
     }
 
     // Used to send new state to listeners

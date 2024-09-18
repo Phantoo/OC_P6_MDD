@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, Location } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield'
@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import { SessionInformation } from '../../auth/interfaces/session-information.interface';
 import { MessageService } from 'primeng/api';
 import { AutoFocusModule } from 'primeng/autofocus';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -22,7 +23,7 @@ import { AutoFocusModule } from 'primeng/autofocus';
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
-export class RegisterComponent 
+export class RegisterComponent implements OnDestroy
 {
     strongPasswordRegex: RegExp = /^(?=[^A-Z]*[A-Z])(?=[^a-z]*[a-z])(?=\D*\d).{8,}$/;
 
@@ -44,6 +45,8 @@ export class RegisterComponent
         })
     })
 
+    registrationSubscription?: Subscription;
+
     constructor(
         private authService: AuthService, 
         private sessionService: SessionService,
@@ -52,16 +55,21 @@ export class RegisterComponent
         private location: Location
     ) {}
 
+    ngOnDestroy(): void 
+    {
+        this.registrationSubscription?.unsubscribe();
+    }
+
     onSubmit(): void 
     {
         let registerRequest : RegisterRequest = this.registerForm.getRawValue();
-        this.authService.register(registerRequest).subscribe({
+        this.registrationSubscription = this.authService.register(registerRequest).subscribe({
             next: response => this.onRegisterSuccess(response),
             error: _ => this.onRegisterFailure()
         })
     }
 
-    onRegisterSuccess(response: SessionInformation) 
+    onRegisterSuccess(response: SessionInformation): void
     {
         this.messageService.add({severity: 'success', summary:  'Création de compte réussie', detail: `Connecté en tant que ${response.user.username}` });
 
@@ -70,12 +78,13 @@ export class RegisterComponent
         this.router.navigate(['/feed']);
     }
 
-    onRegisterFailure() 
+    onRegisterFailure(): void 
     {
         this.messageService.add({severity: 'error', summary:  'Création de compte échouée', detail: `L'email est peut-être déjà associée à un profil existant` });
     }
 
-    onBackButtonClicked() {
+    onBackButtonClicked(): void
+    {
         this.location.back();
     }
 }

@@ -8,14 +8,15 @@ import { SessionInformation } from './auth/interfaces/session-information.interf
 import { SessionService } from './auth/services/session.service';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { PlatformService } from './services/platform.service';
+import { CookieModule, CookieService } from 'ngx-cookie';
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [RouterOutlet, FormsModule, NavbarComponent, ToastModule ],
+    imports: [RouterOutlet, FormsModule, NavbarComponent, ToastModule, CookieModule ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
-    providers: [MessageService]
+    providers: [MessageService, CookieService]
 })
 export class AppComponent implements OnInit
 {
@@ -25,42 +26,30 @@ export class AppComponent implements OnInit
         private router: Router,
         private sessionService: SessionService,
         public platformService: PlatformService,
-        @Inject(DOCUMENT) private document: Document
+        @Inject(DOCUMENT) private document: Document,
+        private cookieService: CookieService
         ) {}
 
     ngOnInit(): void 
     {
-        const localStorage = this.document.defaultView?.localStorage;
-        if (!localStorage)
+        const sessionInfo: SessionInformation = this.cookieService.getObject('SESSION') as SessionInformation;
+        if (sessionInfo == undefined)
             return;
-
-        // Get session informations
-        const sessionString = localStorage.getItem('SESSION');
-        if (sessionString === null)
-            return;
-        const sessioninfo: SessionInformation = JSON.parse(sessionString);
 
         // Get token expiration time
-        const jwtToken = JSON.parse(atob(sessioninfo.token.split('.')[1]));
+        const jwtToken = JSON.parse(atob(sessionInfo.token.split('.')[1]));
         const expirationDate = new Date(jwtToken.exp * 1000);
         if (expirationDate.getTime() < Date.now())
-            localStorage.removeItem('SESSION');
+            this.cookieService.remove('SESSION');
         else
-            this.sessionService.logIn(sessioninfo);
-
-        // AFK Logout
-        if (isPlatformBrowser(PLATFORM_ID))
-        {
-            const timeout = expirationDate.getTime() - Date.now();
-            setTimeout(() => this.onTokenExpired, timeout);
-        }
+            this.sessionService.logIn(sessionInfo);
     }
 
     shouldShowNavBar(): boolean {
         return this.router.url !== '/landing';
     }
 
-    onTokenExpired() {
+    onTokenExpired(): void {
         this.sessionService.logOut();
         this.router.navigate(['/landing']);
     }

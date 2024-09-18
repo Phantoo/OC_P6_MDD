@@ -10,6 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.openclassrooms.mddapi.interfaces.ArticleService;
+import com.openclassrooms.mddapi.interfaces.CommentService;
+import com.openclassrooms.mddapi.interfaces.SubjectService;
+import com.openclassrooms.mddapi.interfaces.UserService;
 import com.openclassrooms.mddapi.models.Article;
 import com.openclassrooms.mddapi.models.Comment;
 import com.openclassrooms.mddapi.models.Subject;
@@ -18,8 +22,11 @@ import com.openclassrooms.mddapi.models.dto.ArticleCreationRequest;
 import com.openclassrooms.mddapi.models.dto.CommentCreationRequest;
 import com.openclassrooms.mddapi.repositories.ArticleRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
-public class ArticleService 
+@AllArgsConstructor
+public class ArticleServiceImpl implements ArticleService
 {
     @Autowired
     private ArticleRepository articleRepository;
@@ -86,13 +93,6 @@ public class ArticleService
 
         // Add comment to the article and save changes
         Comment savedComment = this.commentService.add(comment);
-        // List<Comment> comments = article.getComments();
-        // comments.add(comment);
-        // article.setComments(comments);
-        // Article savedArticle = articleRepository.save(article);
-        // Comment savedComment = savedArticle.getComments().stream().filter(c -> {
-        //     return c.getCreatedAt().equals(new Timestamp(now.getTime()));
-        // }).findFirst().orElse(null);
         return savedComment;
     }
 }

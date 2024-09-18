@@ -31,13 +31,15 @@ export class PlatformService
     }
 
     @HostListener('window:resize', ['$event'])
-	public onResize(event: any) {
+	public onResize(event: any): void
+    {
         this.width = event.target.innerWidth;
         this.updateBreakpoints();
         this.resizeSubject.next(this.width);
 	}
 
-    private updateBreakpoints() {
+    private updateBreakpoints(): void
+    {
         this.isMobile = this.width <= PlatformService.MOBILE_BREAKPOINT;
         this.isTablet = this.width <= PlatformService.TABLET_BREAKPOINT;
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -13,6 +13,7 @@ import { SessionService } from '../../auth/services/session.service';
 import { ArticleService } from '../../services/article.service';
 import { MessageService } from 'primeng/api';
 import { Location } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-article-creation',
@@ -21,7 +22,7 @@ import { Location } from '@angular/common';
   templateUrl: './article-creation.component.html',
   styleUrl: './article-creation.component.scss'
 })
-export class ArticleCreationComponent implements OnInit
+export class ArticleCreationComponent implements OnInit, OnDestroy
 {
     articleForm = new FormGroup({
         subject: new FormControl('', { 
@@ -40,6 +41,9 @@ export class ArticleCreationComponent implements OnInit
 
     subjects?: Subject[];
 
+    subjectsSubscription?: Subscription;
+    articleSubscription?: Subscription;
+
     constructor(
         private subjectService: SubjectService,
         private sessionService: SessionService,
@@ -49,26 +53,30 @@ export class ArticleCreationComponent implements OnInit
         private location: Location
     ) {}
 
-    ngOnInit() 
+    ngOnInit(): void 
     {
-        this.subjectService.getAll().subscribe(subjects => {
-            this.subjects = subjects;
-        })
+        this.subjectsSubscription = this.subjectService.getAll().subscribe({
+            next: subjects => {
+                this.subjects = subjects;
+            },
+            error: _ => this.messageService.add({severity: 'error', summary:  'Erreur durant le chargement des thèmes', detail: `Veuillez réessayer plus tard` })
+        });
     }
 
-    onBackButtonClicked() {
+    ngOnDestroy(): void 
+    {
+        this.subjectsSubscription?.unsubscribe();
+        this.articleSubscription?.unsubscribe();
+    }
+
+    onBackButtonClicked(): void
+    {
         this.location.back();
     }
 
-    onSubmit() 
+    onSubmit(): void 
     {
-        const authorId: number | undefined = this.sessionService.sessionInfo?.user.id;
-        if (authorId === undefined)
-        {
-            this.router.navigate(['/landing']);
-            return;
-        }
-
+        const authorId: number = this.sessionService.sessionInfo!.user.id;
         const formData = this.articleForm.getRawValue();
         const request: ArticleCreationRequest = {
             title: formData.title,
@@ -76,7 +84,8 @@ export class ArticleCreationComponent implements OnInit
             subjectId: (<Subject> <unknown> formData.subject).id,
             authorId: authorId
         };
-        this.articleService.add(request).subscribe(response => 
+        this.articleSubscription = this.articleService.add(request).subscribe({
+            next: response => 
             {
                 this.articleForm.reset();
                 this.messageService.add({severity: 'success', summary:  'Article publié', detail: `${response.message}` });
@@ -85,6 +94,8 @@ export class ArticleCreationComponent implements OnInit
                 this.router.navigateByUrl('/', {skipLocationChange: true}).then(() => {
                     this.router.navigate([`/article/${response.article.id}`]);
                 });
-            });
+            },
+            error: _ => this.messageService.add({severity: 'error', summary:  "Erreur durant la création de l'article", detail: `Veuillez réessayer plus tard` })
+        });
     }
 }

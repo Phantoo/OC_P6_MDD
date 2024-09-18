@@ -59,16 +59,16 @@ export class NavbarComponent implements OnInit, OnDestroy
 
     ngOnDestroy(): void 
     {
-        if (this.resizeSubscription)
-            this.resizeSubscription.unsubscribe();
+        this.resizeSubscription?.unsubscribe();
     }
 
-    onLogoutClicked() {
+    onLogoutClicked(): void
+    {
         this.sessionService.logOut();
         this.router.navigate(['/landing']);
     }
 
-    private onWindowResize() 
+    private onWindowResize(): void 
     {
         if (this.platformService.isTablet && 
             !this.isMenuMobile)

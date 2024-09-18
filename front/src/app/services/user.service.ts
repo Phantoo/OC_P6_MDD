@@ -17,12 +17,12 @@ export class UserService
         return this.httpClient.get<User>(`${this.servicePath}/${id}`);
     }
 
-    public subscribe(userId: number, subjectId: number): Observable<any> {
-        return this.httpClient.put<any>(`${this.servicePath}/${userId}/subscribe/${subjectId}`, null);
+    public subscribe(userId: number, subjectId: number): Observable<void> {
+        return this.httpClient.put<void>(`${this.servicePath}/${userId}/subscribe/${subjectId}`, null);
     }
 
-    public unsubscribe(userId: number, subjectId: number): Observable<any> {
-        return this.httpClient.put<any>(`${this.servicePath}/${userId}/unsubscribe/${subjectId}`, null);
+    public unsubscribe(userId: number, subjectId: number): Observable<void> {
+        return this.httpClient.put<void>(`${this.servicePath}/${userId}/unsubscribe/${subjectId}`, null);
     }
 
     public update(id: number, request: ProfileUpdateRequest): Observable<User> {

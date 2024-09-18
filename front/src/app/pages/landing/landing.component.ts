@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { SessionService } from '../../auth/services/session.service';
 
 @Component({
   selector: 'app-landing',
@@ -12,14 +11,14 @@ import { SessionService } from '../../auth/services/session.service';
 })
 export class LandingComponent
 {
-    constructor(private router: Router, private sessionService: SessionService){}
+    constructor(private router: Router){}
 
-    public onLoginButtonClicked() 
+    public onLoginButtonClicked(): void
     {
         this.router.navigate(['/login']);
     }
 
-    public onRegisterButtonClicked() 
+    public onRegisterButtonClicked(): void
     {
         this.router.navigate(['/register']);
     }

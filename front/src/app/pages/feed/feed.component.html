@@ -27,10 +27,14 @@
         {
             <app-article-card [article]=article/>
         }
-        <!-- @empty
+        @empty
         {
-            Pas d'articles
-        }  -->
+            <p-messages 
+                class="w-full"
+                [(value)]="emptyFeedMessage"
+                [enableService]="false" 
+                [closable]="false" />
+        } 
     }
 </div>
 
